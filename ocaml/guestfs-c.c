@@ -395,12 +395,16 @@ event_callback_wrapper (guestfs_h *g,
   /* Ensure we are holding the GC lock before any GC operations are
    * possible. (RHBZ#725824)
    */
-  caml_leave_blocking_section ();
+  bool in_blocking_section = (caml_state == NULL);
+
+  if (in_blocking_section)
+    caml_leave_blocking_section ();
 
   event_callback_wrapper_locked (g, data, event, event_handle, flags,
                                  buf, buf_len, array, array_len);
 
-  caml_enter_blocking_section ();
+  if (in_blocking_section)
+    caml_enter_blocking_section ();
 }
 
 value
